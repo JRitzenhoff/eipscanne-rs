@@ -2,9 +2,7 @@ use std::io::SeekFrom;
 use std::mem;
 
 use binrw::{
-    binwrite,
-    BinResult,
-    BinWrite, // BinWrite, // trait for writing
+    binrw, BinRead, BinResult, BinWrite
 };
 
 use super::shared::{ServiceCode, ServiceContainer};
@@ -34,12 +32,12 @@ fn write_cip_path_with_size(cip_path: &CipPath) -> BinResult<()> {
     Ok(())
 }
 
-#[binwrite]
+#[binrw]
 #[derive(Debug, PartialEq)]
-#[bw(little)]
+#[brw(little)]
 pub struct RequestData<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     pub total_word_size: CipUsint,
     // override the total_word_size by seeking back before it
@@ -52,7 +50,7 @@ where
 
 impl<T> RequestData<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     pub fn new(path: CipPath, request_data_content: Option<T>) -> Self {
         RequestData {
@@ -63,12 +61,12 @@ where
     }
 }
 
-#[binwrite]
+#[binrw]
 #[brw(little)]
 #[derive(Debug, PartialEq)]
 pub struct MessageRouterRequest<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     pub service_container: ServiceContainer,
     pub request_data: RequestData<T>,
@@ -84,7 +82,7 @@ impl MessageRouterRequest<u8> {
 
 impl<T> MessageRouterRequest<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     pub fn new_data(
         service_code: ServiceCode,

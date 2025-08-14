@@ -1,8 +1,6 @@
 use binrw::meta::WriteEndian;
 use binrw::{
-    binread,
-    BinRead,
-    BinWrite, // trait for writing
+    binread, BinRead, BinWrite // trait for writing
 };
 
 use crate::cip::message::{
@@ -12,10 +10,11 @@ use crate::cip::path::CipPath;
 use crate::cip::types::CipUdint;
 use crate::eip::packet::EnIpPacketDescription;
 
+#[binread]
 #[derive(Debug, PartialEq)]
 pub struct RequestObjectAssembly<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     pub packet_description: EnIpPacketDescription,
     pub cip_message: Option<MessageRouterRequest<T>>,
@@ -25,14 +24,14 @@ where
 
 impl<T> WriteEndian for RequestObjectAssembly<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     const ENDIAN: binrw::meta::EndianKind = binrw::meta::EndianKind::Endian(binrw::Endian::Little);
 }
 
 impl<T> BinWrite for RequestObjectAssembly<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     type Args<'a> = ();
 
@@ -75,20 +74,6 @@ where
 
 // ^^^^^^^^ End of RequestObjectAssembly impl ^^^^^^^^
 
-#[binread]
-#[brw(little)]
-#[derive(Debug, PartialEq)]
-pub struct ResponseObjectAssembly<T>
-where
-    T: for<'a> BinRead<Args<'a> = ()>,
-{
-    pub packet_description: EnIpPacketDescription,
-
-    // TODO: Validate that the size of the EnIpPacketDescription correctly matches the remaining bytes
-    //  * If the remaining bytes are 0, don't serialize the next step (otherwise do)
-    #[br(try)]
-    pub cip_message: Option<MessageRouterResponse<T>>,
-}
 
 impl RequestObjectAssembly<u8> {
     pub fn new_registration() -> Self {
@@ -119,7 +104,7 @@ impl RequestObjectAssembly<u8> {
 
 impl<T> RequestObjectAssembly<T>
 where
-    T: for<'a> BinWrite<Args<'a> = ()>,
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     pub fn new_service_request(
         session_handle: CipUdint,
@@ -137,3 +122,74 @@ where
         }
     }
 }
+
+
+#[binread]
+#[brw(little)]
+#[derive(Debug, PartialEq)]
+pub struct ResponseObjectAssembly<T>
+where
+    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()>,
+{
+    pub packet_description: EnIpPacketDescription,
+
+    // TODO: Validate that the size of the EnIpPacketDescription correctly matches the remaining bytes
+    //  * If the remaining bytes are 0, don't serialize the next step (otherwise do)
+    #[br(try)]
+    pub cip_message: Option<MessageRouterResponse<T>>,
+}
+
+
+// ======= Start of ResponseObjectAssembly impl ========
+
+impl<T> WriteEndian for ResponseObjectAssembly<T>
+where
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
+{
+    const ENDIAN: binrw::meta::EndianKind = binrw::meta::EndianKind::Endian(binrw::Endian::Little);
+}
+
+impl<T> BinWrite for ResponseObjectAssembly<T>
+where
+    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
+{
+    type Args<'a> = ();
+
+    fn write_options<W: std::io::Write + std::io::Seek>(
+        &self,
+        writer: &mut W,
+        endian: binrw::Endian,
+        args: Self::Args<'_>,
+    ) -> binrw::BinResult<()> {
+        // Step 1: Serialize the `cip_message` field
+        let mut temp_buffer = Vec::new();
+        let mut temp_writer = std::io::Cursor::new(&mut temp_buffer);
+
+        let cip_message_write_result =
+            self.cip_message
+                .write_options(&mut temp_writer, endian, args);
+
+        if let Err(write_err) = cip_message_write_result {
+            return Err(write_err);
+        }
+
+        // Step 2: Calculate the packet size
+        let packet_byte_size = temp_buffer.len() as u16;
+
+        // Step 3: Write the full packet
+        if let Err(write_err) =
+            self.packet_description
+                .write_options(writer, endian, (packet_byte_size,))
+        {
+            return Err(write_err);
+        }
+
+        if let Err(write_err) = writer.write(&temp_buffer) {
+            return Err(binrw::Error::Io(write_err));
+        }
+
+        Ok(())
+    }
+}
+
+// ^^^^^^^^ End of RequestObjectAssembly impl ^^^^^^^^
