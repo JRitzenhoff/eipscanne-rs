@@ -9,6 +9,7 @@ use crate::cip::message::{
 use crate::cip::path::CipPath;
 use crate::cip::types::CipUdint;
 use crate::eip::packet::EnIpPacketDescription;
+use crate::eip::command::CommandSpecificData;
 
 #[binread]
 #[derive(Debug, PartialEq)]
@@ -17,6 +18,9 @@ where
     T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
 {
     pub packet_description: EnIpPacketDescription,
+
+    // Make sure that the MessageRouterRequest fails loudly if the command is SendRrData
+    #[br(try, if(matches!(packet_description.command_specific_data, CommandSpecificData::SendRrData(_))))]
     pub cip_message: Option<MessageRouterRequest<T>>,
 }
 

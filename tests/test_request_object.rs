@@ -5,7 +5,7 @@ use eipscanne_rs::cip::message::shared::{ServiceCode, ServiceContainer};
 use eipscanne_rs::cip::path::CipPath;
 use eipscanne_rs::cip::types::CipByte;
 use eipscanne_rs::eip::command::{
-    CommandSpecificData, EnIpCommand, EncapsStatusCode, RRPacketData,
+    CommandSpecificData, EnIpCommand, EncapsStatusCode, RRPacketData, RegisterData,
 };
 use eipscanne_rs::eip::packet::{EnIpPacketDescription, EncapsulationHeader};
 use eipscanne_rs::object_assembly::RequestObjectAssembly;
@@ -105,4 +105,61 @@ fn test_deserialize_cip_identity_request() {
 
     // Assert equality
     assert_eq!(expected_identity_packet, cip_identity_request);
+}
+
+#[test]
+fn test_deserialize_registration_request() {
+
+    /*
+    EtherNet/IP (Industrial Protocol), Session: 0x00000000, Register Session
+    Encapsulation Header
+        Command: Register Session (0x0065)
+        Length: 4
+        Session Handle: 0x00000000
+        Status: Success (0x00000000)
+        Sender Context: 0000000000000000
+        Options: 0x00000000
+    Command Specific Data
+        Protocol Version: 1
+        Option Flags: 0x0000
+
+    -------------------------------------
+    Hex Dump:
+    0000   65 00 04 00 00 00 00 00 00 00 00 00 00 00 00 00
+    0010   00 00 00 00 00 00 00 00 01 00 00 00
+
+    */
+
+    let registration_request_byte_array: Vec<CipByte> = vec![
+        0x65, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+    ];
+
+    let byte_cursor = std::io::Cursor::new(registration_request_byte_array);
+    let mut buf_reader = std::io::BufReader::new(byte_cursor);
+
+    let registration_request = RequestObjectAssembly::<u8>::read_le(&mut buf_reader).unwrap();
+
+    let expected_identity_packet =
+        RequestObjectAssembly {
+            packet_description: EnIpPacketDescription {
+                header: EncapsulationHeader {
+                    command: EnIpCommand::RegisterSession,
+                    length: Some(4),
+                    session_handle: 0x00,
+                    status_code: EncapsStatusCode::Success,
+                    sender_context: [0x00; 8],
+                    options: 0x00,
+                },
+                command_specific_data: CommandSpecificData::RegisterSession(
+                    RegisterData {
+                        protocol_version: 1,
+                        option_flags: 0x00,
+                    },
+                ),
+            },
+            cip_message: None,
+        };
+
+        assert_eq!(expected_identity_packet, registration_request);
 }
