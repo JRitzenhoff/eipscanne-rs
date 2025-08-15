@@ -43,6 +43,7 @@ where
     // override the total_word_size by seeking back before it
     #[bw(seek_before = SeekFrom::Current(-1 * (mem::size_of::<CipUsint>() as i64)), write_with = write_cip_path_with_size)]
     pub cip_path: CipPath,
+    #[br(try)]
     pub additional_data: Option<T>,
 }
 
