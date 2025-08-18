@@ -221,7 +221,7 @@ mod tests {
         let set_digital_output_message = MessageRouterRequest::new_data(
             ServiceCode::SetAttributeSingle,
             CipPath::new_full(0x4, 0x70, 0x3),
-            Some(OutputAssemblyObject {
+            Some(Box::new(OutputAssemblyObject {
                 io_output_data: IOOutputData::new_digital_outputs(DigitalOutputs::new(
                     false,
                     true,
@@ -236,7 +236,7 @@ mod tests {
                 motor2_output_data: MotorOutputData::new(),
                 motor3_output_data: MotorOutputData::new(),
                 serial_ascii_output_data: SerialAsciiOutputData::new(),
-            }),
+            })),
         );
 
         // Write the object_assembly binary data to the buffer
@@ -356,7 +356,7 @@ mod tests {
         let set_digital_output_message = MessageRouterRequest::new_data(
             ServiceCode::SetAttributeSingle,
             CipPath::new_full(0x4, 0x70, 0x3),
-            Some(OutputAssemblyObject {
+            Some(Box::new(OutputAssemblyObject {
                 io_output_data: IOOutputData::new_digital_outputs(DigitalOutputs::new(
                     false,
                     true,
@@ -371,7 +371,7 @@ mod tests {
                 motor2_output_data: MotorOutputData::new(),
                 motor3_output_data: MotorOutputData::new(),
                 serial_ascii_output_data: SerialAsciiOutputData::new(),
-            }),
+            })),
         );
 
         let set_digital_output_object = eipscanne_rs::object_assembly::RequestObjectAssembly {
@@ -554,9 +554,7 @@ mod tests {
             0x6f, 0x00, 0x30, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xb2, 0x00, 0x20, 0x01, 0x10, 0x03,
-            0x20, 0x04, 0x24, 0x70, 0x30, 0x03, 0x00, 0x00, 
-            0x00, // 0x02
-            0x00, 0x00, 0x00, 0x00, 0x00,
+            0x20, 0x04, 0x24, 0x70, 0x30, 0x03, 0x00, 0x00, 0x00, // 0x02
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -576,15 +574,14 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         ];
 
         // Read the object_assembly binary data from the buffer
         let byte_cursor = std::io::Cursor::new(raw_byte_array);
         let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
-        let request_object =
-            RequestObjectAssembly::<OutputAssemblyObject>::read_le(&mut buf_reader).unwrap();
+        let request_object = RequestObjectAssembly::read_le(&mut buf_reader).unwrap();
 
         let expected_output_assembly_request = RequestObjectAssembly {
             packet_description: EnIpPacketDescription {
@@ -618,7 +615,7 @@ mod tests {
                 request_data: RequestData::new(
                     Some(0x3),
                     CipPath::new_full(0x4, 0x70, 0x3),
-                    Some(OutputAssemblyObject {
+                    Some(Box::new(OutputAssemblyObject {
                         io_output_data: IOOutputData {
                             aop_value: 0x00, // 0x02
                             dop_value: DigitalOutputs::new(
@@ -639,16 +636,13 @@ mod tests {
                         motor2_output_data: MotorOutputData::new(),
                         motor3_output_data: MotorOutputData::new(),
                         serial_ascii_output_data: SerialAsciiOutputData::new(),
-                    }),
+                    })),
                 ),
             }),
         };
 
         // Assert equality
-        assert_eq!(
-            request_object,
-            expected_output_assembly_request
-        );
+        assert_eq!(request_object, expected_output_assembly_request);
         assert_eq!(
             request_object.cip_message,
             expected_output_assembly_request.cip_message

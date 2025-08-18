@@ -1,8 +1,10 @@
 use binrw::meta::WriteEndian;
 use binrw::{
-    binread, BinRead, BinWrite // trait for writing
+    binread,
+    BinWrite, // trait for writing
 };
 
+use crate::cip::message::data::CipData;
 use crate::cip::message::{
     request::MessageRouterRequest, response::MessageRouterResponse, shared::ServiceCode,
 };
@@ -13,10 +15,7 @@ use crate::eip::packet::EnIpPacketDescription;
 
 #[binread]
 #[derive(Debug, PartialEq)]
-pub struct RequestObjectAssembly<T>
-where
-    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
-{
+pub struct RequestObjectAssembly {
     pub packet_description: EnIpPacketDescription,
 
     // Make sure that the MessageRouterRequest fails loudly if the command is SendRrData
@@ -31,22 +30,16 @@ where
             0
         })
     )]
-    pub cip_message: Option<MessageRouterRequest<T>>,
+    pub cip_message: Option<MessageRouterRequest>,
 }
 
 // ======= Start of RequestObjectAssembly impl ========
 
-impl<T> WriteEndian for RequestObjectAssembly<T>
-where
-    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
-{
+impl WriteEndian for RequestObjectAssembly {
     const ENDIAN: binrw::meta::EndianKind = binrw::meta::EndianKind::Endian(binrw::Endian::Little);
 }
 
-impl<T> BinWrite for RequestObjectAssembly<T>
-where
-    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
-{
+impl BinWrite for RequestObjectAssembly {
     type Args<'a> = ();
 
     fn write_options<W: std::io::Write + std::io::Seek>(
@@ -88,8 +81,7 @@ where
 
 // ^^^^^^^^ End of RequestObjectAssembly impl ^^^^^^^^
 
-
-impl RequestObjectAssembly<u8> {
+impl RequestObjectAssembly {
     pub fn new_registration() -> Self {
         RequestObjectAssembly {
             packet_description: EnIpPacketDescription::new_registration_description(),
@@ -116,15 +108,12 @@ impl RequestObjectAssembly<u8> {
     }
 }
 
-impl<T> RequestObjectAssembly<T>
-where
-    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
-{
+impl RequestObjectAssembly {
     pub fn new_service_request(
         session_handle: CipUdint,
         request_path: CipPath,
         service_code: ServiceCode,
-        data: Option<T>,
+        data: Option<Box<dyn CipData>>,
     ) -> Self {
         Self {
             packet_description: EnIpPacketDescription::new_cip_description(session_handle, 0),
@@ -137,35 +126,27 @@ where
     }
 }
 
-
 #[binread]
 #[brw(little)]
 #[derive(Debug, PartialEq)]
-pub struct ResponseObjectAssembly<T>
-where
-    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()>,
+pub struct ResponseObjectAssembly
 {
     pub packet_description: EnIpPacketDescription,
 
     // TODO: Validate that the size of the EnIpPacketDescription correctly matches the remaining bytes
     //  * If the remaining bytes are 0, don't serialize the next step (otherwise do)
     #[br(try)]
-    pub cip_message: Option<MessageRouterResponse<T>>,
+    pub cip_message: Option<MessageRouterResponse>,
 }
-
 
 // ======= Start of ResponseObjectAssembly impl ========
 
-impl<T> WriteEndian for ResponseObjectAssembly<T>
-where
-    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
+impl WriteEndian for ResponseObjectAssembly
 {
     const ENDIAN: binrw::meta::EndianKind = binrw::meta::EndianKind::Endian(binrw::Endian::Little);
 }
 
-impl<T> BinWrite for ResponseObjectAssembly<T>
-where
-    T: for<'a> BinWrite<Args<'a> = ()> + for<'a> BinRead<Args<'a> = ()>,
+impl BinWrite for ResponseObjectAssembly
 {
     type Args<'a> = ();
 

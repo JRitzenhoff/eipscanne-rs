@@ -5,6 +5,7 @@ use bilge::prelude::u4;
 use eipscanne_rs::cip::identity::{
     DeviceType, IdentityResponse, IdentityStatusBits, Revision, VendorId,
 };
+use eipscanne_rs::cip::message::data::CipDataOpt;
 use eipscanne_rs::cip::message::response::{
     MessageRouterResponse, ResponseData, ResponseStatusCode,
 };
@@ -243,14 +244,14 @@ fn test_deserialize_cip_identity_response() {
     let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
     let cip_identity_response =
-        MessageRouterResponse::<IdentityResponse>::read(&mut buf_reader).unwrap();
+        MessageRouterResponse::read(&mut buf_reader).unwrap();
 
     let expected_cip_identity_response = MessageRouterResponse {
         service_container: ServiceContainer::new(ServiceCode::GetAttributeAll, true),
         response_data: ResponseData {
             status: ResponseStatusCode::Success,
             additional_status_size: 0x0,
-            data: Some(IdentityResponse {
+            data: Some(CipDataOpt::Typed(Box::new(IdentityResponse {
                 vendor_id: VendorId::TeknicInc,
                 device_type: DeviceType::GenericDevice,
                 product_code: 0x1,
@@ -273,7 +274,7 @@ fn test_deserialize_cip_identity_response() {
                 .into(),
                 serial_number: 0x01ff3d32,
                 product_name: CipShortString::from("ClearLink".to_string()),
-            }),
+            }))),
         },
     };
 
@@ -377,7 +378,7 @@ fn test_deserialize_full_identity_response() {
     let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
     let identity_response =
-        ResponseObjectAssembly::<IdentityResponse>::read(&mut buf_reader).unwrap();
+        ResponseObjectAssembly::read(&mut buf_reader).unwrap();
 
     let expected_identity_response =
         ResponseObjectAssembly {
@@ -399,7 +400,7 @@ fn test_deserialize_full_identity_response() {
                 response_data: ResponseData {
                     status: ResponseStatusCode::Success,
                     additional_status_size: 0x0,
-                    data: Some(IdentityResponse {
+                    data: Some(CipDataOpt::Typed(Box::new(IdentityResponse {
                         vendor_id: VendorId::TeknicInc,
                         device_type: DeviceType::GenericDevice,
                         product_code: 0x1,
@@ -422,7 +423,7 @@ fn test_deserialize_full_identity_response() {
                         .into(),
                         serial_number: 0x01ff3d32,
                         product_name: CipShortString::from("ClearLink".to_string()),
-                    }),
+                    }))),
                 },
             }),
         };

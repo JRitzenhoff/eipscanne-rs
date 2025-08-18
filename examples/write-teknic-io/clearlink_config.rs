@@ -341,7 +341,7 @@ mod tests {
         let set_clearlink_config_message = MessageRouterRequest::new_data(
             ServiceCode::SetAttributeSingle,
             CipPath::new_full(0x4, 0x96, 0x3),
-            Some(ConfigAssemblyObject::default()),
+            Some(Box::new(ConfigAssemblyObject::default())),
         );
 
         let set_clearlink_config_object = eipscanne_rs::object_assembly::RequestObjectAssembly {

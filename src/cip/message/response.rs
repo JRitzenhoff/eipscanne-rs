@@ -1,8 +1,10 @@
 use binrw::{
-    binrw, BinRead, BinWrite // BinRead,  // trait for reading
+    binrw,
+    BinRead,
+    BinWrite, // BinRead,  // trait for reading
 };
 
-use crate::cip::types::CipUsint;
+use crate::cip::{message::data::{CipDataOpt}, types::CipUsint};
 
 use super::shared::ServiceContainer;
 
@@ -16,26 +18,22 @@ pub enum ResponseStatusCode {
 #[binrw]
 #[brw(little)]
 #[derive(Debug, PartialEq)]
-pub struct ResponseData<T>
-where
-    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()>,
+pub struct ResponseData
 {
     #[brw(pad_before = 1)]
     pub status: ResponseStatusCode,
     pub additional_status_size: u8,
 
     #[br(try)]
-    pub data: Option<T>,
+    pub data: Option<CipDataOpt>,
 }
 
 #[binrw]
 #[brw(little)]
 #[derive(Debug, PartialEq)]
-pub struct MessageRouterResponse<T>
-where
-    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()>,
+pub struct MessageRouterResponse
 {
     #[br(assert(service_container.response()))]
     pub service_container: ServiceContainer,
-    pub response_data: ResponseData<T>,
+    pub response_data: ResponseData,
 }

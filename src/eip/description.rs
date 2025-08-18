@@ -40,7 +40,7 @@ fn descripter_length_writer(obj: &Option<CipUint>, arg0: Option<u16>) -> binrw::
 
     // If there isn't an input argument size, then just write 0
     if obj.is_some() && arg0 == Some(0) {
-        return obj.write_options(writer, endian, ())
+        return obj.write_options(writer, endian, ());
     }
 
     // let write_value = arg0.unwrap_or(0);

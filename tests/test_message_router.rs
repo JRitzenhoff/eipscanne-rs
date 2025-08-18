@@ -10,6 +10,7 @@ use eipscanne_rs::cip::message::shared::{ServiceCode, ServiceContainer};
 
 use eipscanne_rs::cip::path::CipPath;
 use eipscanne_rs::cip::types::CipByte;
+use eipscanne_rs::cip::message::data::CipDataOpt;
 
 #[test]
 fn test_serialize_service_container() {
@@ -106,7 +107,7 @@ fn test_deserialize_empty_response() {
     let byte_cursor = std::io::Cursor::new(raw_byte_array);
     let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
-    let message_router_response = MessageRouterResponse::<u8>::read(&mut buf_reader).unwrap();
+    let message_router_response = MessageRouterResponse::read(&mut buf_reader).unwrap();
 
     let expected_message_router_response = MessageRouterResponse {
         service_container: ServiceContainer::from(ServiceContainer::new(
@@ -116,7 +117,7 @@ fn test_deserialize_empty_response() {
         response_data: ResponseData {
             status: ResponseStatusCode::Success,
             additional_status_size: 0x0,
-            data: Some(0x4),
+            data: Some(CipDataOpt::Raw(vec![0x4])),
         },
     };
 
@@ -126,7 +127,7 @@ fn test_deserialize_empty_response() {
 
 #[test]
 fn test_message_cip_path_byte_size() {
-    let message_router_request = MessageRouterRequest::<u8> {
+    let message_router_request = MessageRouterRequest {
         service_container: ServiceContainer::from(ServiceContainer::new(
             ServiceCode::GetAttributeAll,
             false,
