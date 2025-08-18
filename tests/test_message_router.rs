@@ -107,7 +107,9 @@ fn test_deserialize_empty_response() {
     let byte_cursor = std::io::Cursor::new(raw_byte_array);
     let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
-    let message_router_response = MessageRouterResponse::read(&mut buf_reader).unwrap();
+    let message_router_response_length: u16 = 4;
+
+    let message_router_response = MessageRouterResponse::read_args(&mut buf_reader, (message_router_response_length,)).unwrap();
 
     let expected_message_router_response = MessageRouterResponse {
         service_container: ServiceContainer::from(ServiceContainer::new(
@@ -117,7 +119,7 @@ fn test_deserialize_empty_response() {
         response_data: ResponseData {
             status: ResponseStatusCode::Success,
             additional_status_size: 0x0,
-            data: Some(CipDataOpt::Raw(vec![0x4])),
+            data: Some(CipDataOpt::Raw(vec![])),
         },
     };
 

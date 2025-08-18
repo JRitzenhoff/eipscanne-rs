@@ -235,6 +235,8 @@ fn test_deserialize_cip_identity_response() {
 
     */
 
+    let message_router_response_length: u16 = 28;
+
     let identity_response_bytes: Vec<u8> = vec![
         0x81, 0x00, 0x00, 0x00, 0xa8, 0x01, 0x2b, 0x00, 0x01, 0x00, 0x02, 0x5d, 0x00, 0x00, 0x32,
         0x3d, 0xff, 0x01, 0x09, 0x43, 0x6c, 0x65, 0x61, 0x72, 0x4c, 0x69, 0x6e, 0x6b,
@@ -244,7 +246,7 @@ fn test_deserialize_cip_identity_response() {
     let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
     let cip_identity_response =
-        MessageRouterResponse::read(&mut buf_reader).unwrap();
+        MessageRouterResponse::read_args(&mut buf_reader, (message_router_response_length,)).unwrap();
 
     let expected_cip_identity_response = MessageRouterResponse {
         service_container: ServiceContainer::new(ServiceCode::GetAttributeAll, true),

@@ -3,8 +3,9 @@ use std::mem;
 
 use binrw::{binrw, BinResult, BinWrite};
 
-use super::shared::{ServiceCode, ServiceContainer};
+use super::shared::{ServiceCode, ServiceContainer, SIZE_OF_SERVICE_CONTAINER};
 use crate::cip::message::data::{CipData, CipDataOpt};
+use crate::cip::message::shared::{BYTES_IN_A_WORD, SIZE_OF_CIP_USINT};
 use crate::cip::path::CipPath;
 use crate::cip::types::CipUsint;
 
@@ -30,9 +31,6 @@ fn write_cip_path_with_size(cip_path: &CipPath) -> BinResult<()> {
 
     Ok(())
 }
-
-const BYTES_IN_A_WORD: u16 = 2;
-const SIZE_OF_CIP_USINT: usize = mem::size_of::<CipUsint>();
 
 #[binrw]
 #[derive(Debug, PartialEq)]
@@ -68,8 +66,6 @@ impl RequestData {
         }
     }
 }
-
-const SIZE_OF_SERVICE_CONTAINER: usize = mem::size_of::<ServiceContainer>();
 
 #[binrw]
 #[brw(little)]

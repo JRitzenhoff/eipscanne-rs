@@ -135,7 +135,17 @@ pub struct ResponseObjectAssembly
 
     // TODO: Validate that the size of the EnIpPacketDescription correctly matches the remaining bytes
     //  * If the remaining bytes are 0, don't serialize the next step (otherwise do)
-    #[br(try)]
+    #[br(
+        try,
+        if(matches!(packet_description.command_specific_data, CommandSpecificData::SendRrData(_))),
+
+        // Conditionally pass args depending on the command type
+        args(if let CommandSpecificData::SendRrData(ref send_rr) = packet_description.command_specific_data {
+            send_rr.unconnected_data_packet.packet_length.unwrap_or(0)
+        } else {
+            0
+        })
+    )]
     pub cip_message: Option<MessageRouterResponse>,
 }
 
