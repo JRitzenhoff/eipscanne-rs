@@ -4,13 +4,13 @@ use std::io::{Read, Seek, Write};
 pub trait WriteTrait: Write + Seek {}
 impl<T: Write + Seek> WriteTrait for T {}
 
-pub trait CipData: std::fmt::Debug {
+pub trait CipData: Send + Sync + std::fmt::Debug {
     fn write_to(&self, w: &mut dyn WriteTrait, endian: Endian) -> BinResult<()>;
 }
 
 impl<T> CipData for T
 where
-    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()> + Sized + std::fmt::Debug,
+    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()> + Sized + Send + Sync + std::fmt::Debug,
 {
     fn write_to(&self, mut w: &mut dyn WriteTrait, endian: Endian) -> BinResult<()> {
         match endian {
