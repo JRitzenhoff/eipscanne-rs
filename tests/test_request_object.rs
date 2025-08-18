@@ -95,11 +95,11 @@ fn test_deserialize_cip_identity_request() {
             },
             cip_message: Some(MessageRouterRequest {
                 service_container: ServiceContainer::new(ServiceCode::GetAttributeAll, false),
-                request_data: RequestData {
-                    total_word_size: 0x4,
-                    cip_path: CipPath::new(0x1, 0x1),
-                    additional_data: None::<u8>,
-                },
+                request_data: RequestData::new( 
+                   Some(0x4),
+                    CipPath::new(0x1, 0x1),
+                    None,
+                ),
             }),
         };
 
