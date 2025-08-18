@@ -1,5 +1,6 @@
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use std::io::{Read, Seek, Write};
+use std::marker::{Send, Sync};
 
 pub trait WriteTrait: Write + Seek {}
 impl<T: Write + Seek> WriteTrait for T {}
