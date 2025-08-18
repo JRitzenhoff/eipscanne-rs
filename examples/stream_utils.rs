@@ -45,22 +45,17 @@ where
 
     // Make sure there is actually a response
     if let Some(ref router_response) = raw_assembly_response.cip_message {
-
-        // Make sure there is actually response data
-        if let Some(ref cip_data_opt) = router_response.response_data.data {
             
-            // Confirm that the read data is a Raw type (Vec<u8>)
-            if let CipDataOpt::Raw(raw_data) = cip_data_opt {
-                // Deserialize the raw data into the expected type
-                let byte_cursor = std::io::Cursor::new(raw_data);
-                let mut buf_reader = std::io::BufReader::new(byte_cursor);
+        // Confirm that the read data is a Raw type (Vec<u8>)
+        if let CipDataOpt::Raw(ref raw_data) = router_response.response_data.data {
+            // Deserialize the raw data into the expected type
+            let byte_cursor = std::io::Cursor::new(raw_data);
+            let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
-                // Read the typed object from the buffer
-                let typed_object = T::read_le(&mut buf_reader)?;
+            // Read the typed object from the buffer
+            let typed_object = T::read_le(&mut buf_reader)?;
 
-                return Ok((raw_assembly_response, typed_object));
-
-            }
+            return Ok((raw_assembly_response, typed_object));
 
         }
     }

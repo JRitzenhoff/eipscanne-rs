@@ -178,6 +178,7 @@ mod tests {
 
     use eipscanne_rs::cip::message::response::{ResponseData, ResponseStatusCode};
     use eipscanne_rs::cip::message::shared::{ServiceCode, ServiceContainer};
+    use eipscanne_rs::cip::message::data::CipDataOpt;
     use eipscanne_rs::cip::message::{
         request::MessageRouterRequest, response::MessageRouterResponse,
     };
@@ -187,6 +188,7 @@ mod tests {
         CommandSpecificData, EnIpCommand, EncapsStatusCode, RRPacketData,
     };
     use eipscanne_rs::eip::packet::{EnIpPacketDescription, EncapsulationHeader};
+
 
     use crate::clearlink_output::{
         DigitalOutputs, IOOutputData, MotorOutputData, OutputAssemblyObject, SerialAsciiOutputData,
@@ -518,7 +520,7 @@ mod tests {
                 response_data: ResponseData {
                     status: ResponseStatusCode::Success,
                     additional_status_size: 0,
-                    data: Some(OutputAssemblyObject {
+                    data: CipDataOpt::Typed(Box::new(OutputAssemblyObject {
                         io_output_data: IOOutputData::new_digital_outputs(DigitalOutputs::new(
                             false,
                             false,
@@ -533,7 +535,7 @@ mod tests {
                         motor2_output_data: MotorOutputData::new(),
                         motor3_output_data: MotorOutputData::new(),
                         serial_ascii_output_data: SerialAsciiOutputData::new(),
-                    }),
+                    })),
                 },
             }),
         };
@@ -542,7 +544,7 @@ mod tests {
         let mut buf_reader = std::io::BufReader::new(byte_cursor);
 
         let response_object =
-            ResponseObjectAssembly::<OutputAssemblyObject>::read(&mut buf_reader).unwrap();
+            ResponseObjectAssembly::read(&mut buf_reader).unwrap();
 
         assert_eq!(expected_output_assembly_response, response_object);
     }

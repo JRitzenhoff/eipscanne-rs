@@ -27,7 +27,7 @@ pub struct ResponseData
 
     // Subtract the `pad_before` byte and the size of `status` and `additional_status_size`
     #[br(args(data_length - (SIZE_OF_CIP_USINT * 3) as u16))]
-    pub data: Option<CipDataOpt>,
+    pub data: CipDataOpt,
 }
 
 #[binrw]

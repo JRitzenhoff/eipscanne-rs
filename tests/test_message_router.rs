@@ -119,7 +119,7 @@ fn test_deserialize_empty_response() {
         response_data: ResponseData {
             status: ResponseStatusCode::Success,
             additional_status_size: 0x0,
-            data: Some(CipDataOpt::Raw(vec![])),
+            data: CipDataOpt::Raw(vec![]),
         },
     };
 

@@ -253,7 +253,7 @@ fn test_deserialize_cip_identity_response() {
         response_data: ResponseData {
             status: ResponseStatusCode::Success,
             additional_status_size: 0x0,
-            data: Some(CipDataOpt::Typed(Box::new(IdentityResponse {
+            data: CipDataOpt::Typed(Box::new(IdentityResponse {
                 vendor_id: VendorId::TeknicInc,
                 device_type: DeviceType::GenericDevice,
                 product_code: 0x1,
@@ -276,7 +276,7 @@ fn test_deserialize_cip_identity_response() {
                 .into(),
                 serial_number: 0x01ff3d32,
                 product_name: CipShortString::from("ClearLink".to_string()),
-            }))),
+            })),
         },
     };
 
@@ -402,7 +402,7 @@ fn test_deserialize_full_identity_response() {
                 response_data: ResponseData {
                     status: ResponseStatusCode::Success,
                     additional_status_size: 0x0,
-                    data: Some(CipDataOpt::Typed(Box::new(IdentityResponse {
+                    data: CipDataOpt::Typed(Box::new(IdentityResponse {
                         vendor_id: VendorId::TeknicInc,
                         device_type: DeviceType::GenericDevice,
                         product_code: 0x1,
@@ -425,7 +425,7 @@ fn test_deserialize_full_identity_response() {
                         .into(),
                         serial_number: 0x01ff3d32,
                         product_name: CipShortString::from("ClearLink".to_string()),
-                    }))),
+                    })),
                 },
             }),
         };
