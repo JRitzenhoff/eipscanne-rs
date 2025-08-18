@@ -116,13 +116,12 @@ impl LogicalPathSegment {
 #[binrw]
 #[brw(little)]
 #[derive(Debug, PartialEq)]
-// #[br(import(path_length: u8))]
+#[br(import(path_length: u8))]
 pub struct CipPath {
     pub class_id_segment: LogicalPathSegment,
     pub instance_id_segment: LogicalPathSegment,
 
-    // #[br(if(path_length == 3))]
-    #[br(try)]
+    #[br(if(path_length == 3))]
     pub attribute_id_segment: Option<LogicalPathSegment>,
 }
 

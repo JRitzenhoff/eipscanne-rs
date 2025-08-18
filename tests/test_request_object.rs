@@ -1,5 +1,7 @@
 use binrw::BinRead;
 
+use pretty_assertions::assert_eq;
+
 use eipscanne_rs::cip::message::request::{MessageRouterRequest, RequestData};
 use eipscanne_rs::cip::message::shared::{ServiceCode, ServiceContainer};
 use eipscanne_rs::cip::path::CipPath;

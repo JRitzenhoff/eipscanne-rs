@@ -8,8 +8,8 @@ use crate::cip::message::{
 };
 use crate::cip::path::CipPath;
 use crate::cip::types::CipUdint;
-use crate::eip::packet::EnIpPacketDescription;
 use crate::eip::command::CommandSpecificData;
+use crate::eip::packet::EnIpPacketDescription;
 
 #[binread]
 #[derive(Debug, PartialEq)]
@@ -20,7 +20,17 @@ where
     pub packet_description: EnIpPacketDescription,
 
     // Make sure that the MessageRouterRequest fails loudly if the command is SendRrData
-    #[br(try, if(matches!(packet_description.command_specific_data, CommandSpecificData::SendRrData(_))))]
+    #[br(
+        try,
+        if(matches!(packet_description.command_specific_data, CommandSpecificData::SendRrData(_))),
+
+        // Conditionally pass args depending on the command type
+        args(if let CommandSpecificData::SendRrData(ref send_rr) = packet_description.command_specific_data {
+            send_rr.unconnected_data_packet.packet_length.unwrap_or(0)
+        } else {
+            0
+        })
+    )]
     pub cip_message: Option<MessageRouterRequest<T>>,
 }
 
