@@ -1,19 +1,23 @@
 use binrw::{BinRead, BinResult, BinWrite, Endian};
 use std::io::{Read, Seek, Write};
+#[cfg(feature = "async")]
 use std::marker::{Send, Sync};
 
-pub trait WriteTrait: Write + Seek {}
-impl<T: Write + Seek> WriteTrait for T {}
+pub trait WriteSeekTrait: Write + Seek {}
+impl<T: Write + Seek> WriteSeekTrait for T {}
 
-pub trait CipData: std::fmt::Debug {
-    fn write_to(&self, w: &mut dyn WriteTrait, endian: Endian) -> BinResult<()>;
+// This conditionally includes a module which implements WEBP support.
+#[cfg(feature = "async")]
+pub trait CipData: std::fmt::Debug + Send + Sync {
+    fn write_to(&self, w: &mut dyn WriteSeekTrait, endian: Endian) -> BinResult<()>;
 }
 
+#[cfg(feature = "async")]
 impl<T> CipData for T
 where
-    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()> + Sized + std::fmt::Debug,
+    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()> + Sized + std::fmt::Debug + Send + Sync,
 {
-    fn write_to(&self, mut w: &mut dyn WriteTrait, endian: Endian) -> BinResult<()> {
+    fn write_to(&self, mut w: &mut dyn WriteSeekTrait, endian: Endian) -> BinResult<()> {
         match endian {
             Endian::Little => self.write_le(&mut w),
             Endian::Big => self.write_be(&mut w),
@@ -21,6 +25,23 @@ where
     }
 }
 
+#[cfg(not(feature = "async"))]
+pub trait CipData: std::fmt::Debug {
+    fn write_to(&self, w: &mut dyn WriteSeekTrait, endian: Endian) -> BinResult<()>;
+}
+
+#[cfg(not(feature = "async"))]
+impl<T> CipData for T
+where
+    T: for<'a> BinRead<Args<'a> = ()> + for<'a> BinWrite<Args<'a> = ()> + Sized + std::fmt::Debug,
+{
+    fn write_to(&self, mut w: &mut dyn WriteSeekTrait, endian: Endian) -> BinResult<()> {
+        match endian {
+            Endian::Little => self.write_le(&mut w),
+            Endian::Big => self.write_be(&mut w),
+        }
+    }
+}
 
 
 #[derive(Debug)]
