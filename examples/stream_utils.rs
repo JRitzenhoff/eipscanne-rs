@@ -23,7 +23,7 @@ pub async fn read_object_assembly(
 ) -> Result<ResponseObjectAssembly, binrw::Error>
 {
     // Write the object_assembly binary data to the buffer
-    let mut response_buffer = vec![0; 100];
+    let mut response_buffer = vec![0; 500];
     let response_bytes_read = stream.read(&mut response_buffer).await?;
     response_buffer.truncate(response_bytes_read);
 
