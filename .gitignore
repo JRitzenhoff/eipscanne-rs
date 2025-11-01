@@ -1,1 +1,6 @@
+# Build artifacts
 target/
+
+# Test Capture
+captures/test.pcap
+
