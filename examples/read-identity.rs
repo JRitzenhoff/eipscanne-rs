@@ -1,3 +1,5 @@
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+
 use tokio::net::TcpStream;
 
 use eipscanne_rs::cip::identity::IdentityResponse;
@@ -10,8 +12,13 @@ const ETHERNET_IP_PORT: u16 = 0xAF12;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Connect to the server at IP address and port
-    // let address = format!("172.28.0.10:{}", ETHERNET_IP_PORT); // Change this to the correct IP and port
-    let address = format!("172.31.19.10:{}", ETHERNET_IP_PORT); // Change this to the correct IP and port
+    let address = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, ETHERNET_IP_PORT));
+
+    // Change the SocketAddr to match the Ethernet/IP Adapter
+    // let address = SocketAddr::V4(SocketAddrV4::new(
+    //     Ipv4Addr::new(172, 28, 0, 10),
+    //     ETHERNET_IP_PORT,
+    // ));
 
     let mut stream = TcpStream::connect(address).await?;
 

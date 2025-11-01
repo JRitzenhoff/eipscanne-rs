@@ -1,3 +1,5 @@
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+
 use clap::Parser;
 use tokio::net::TcpStream;
 
@@ -14,7 +16,7 @@ mod duplicated_stream_utils;
 // Make sure the code itself looks the same
 use clearlink_config::ConfigAssemblyObject;
 use clearlink_output::OutputAssemblyObject;
-use cli_config::{set_io_data, CliArgs};
+use cli_config::{CliArgs, set_io_data};
 use duplicated_stream_utils as stream_utils;
 
 const ETHERNET_IP_PORT: u16 = 0xAF12;
@@ -24,8 +26,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli_args = CliArgs::parse();
 
     // Connect to the server at IP address and port
-    // let address = format!("172.28.0.10:{}", ETHERNET_IP_PORT); // Change this to the correct IP and port
-    let address = format!("172.31.19.10:{}", ETHERNET_IP_PORT); // Change this to the correct IP and port
+    let address = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, ETHERNET_IP_PORT));
+
+    // Change the SocketAddr to match the Ethernet/IP Adapter
+    // let address = SocketAddr::V4(SocketAddrV4::new(
+    //     Ipv4Addr::new(172, 28, 0, 10),
+    //     ETHERNET_IP_PORT,
+    // ));
 
     let mut stream = TcpStream::connect(address).await?;
 
@@ -111,8 +118,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .await;
 
-    let _set_digital_io_success_response =
-        stream_utils::read_object_assembly(&mut stream).await?;
+    let _set_digital_io_success_response = stream_utils::read_object_assembly(&mut stream).await?;
 
     // ^^^^^^^^^ Write the Digital Output ^^^^^^^^^^^^
 
